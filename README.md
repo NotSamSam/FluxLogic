@@ -2,7 +2,7 @@
 
 **Universal Data Connector** — Un outil simple pour envoyer vos fichiers de données vers n'importe quelle API.
 
-[![Site Statique](https://img.shields.io/badge/Demo-GitHub_Pages-22c55e?logo=github)](https://ton-username.github.io/fluxlogic/)
+[![Site Statique](https://img.shields.io/badge/Demo-GitHub_Pages-22c55e?logo=github)](https://notsamsam.github.io/FluxLogic/)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python)](https://python.org)
 
 ---
