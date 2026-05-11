@@ -1,10 +1,3 @@
-"""
-FluxLogic - Data Processor
-===========================
-Core ETL engine: clean → normalize → validate incoming records before
-they are dispatched to target APIs.
-"""
-
 from __future__ import annotations
 
 import logging
@@ -21,18 +14,6 @@ logger = logging.getLogger("fluxlogic.processor")
 
 
 class DataProcessor:
-    """
-    Stateless processor that transforms raw records into clean, validated
-    dictionaries ready for API dispatch.
-
-    Pipeline stages (executed in order):
-        1. **strip_whitespace** – trim leading/trailing spaces in string fields.
-        2. **normalize_keys** – lowercase & snake_case column names.
-        3. **coerce_types** – attempt sensible type casting (e.g. numeric strings → float).
-        4. **drop_empty_rows** – remove records where all values are null / empty.
-        5. **custom_transforms** – user-supplied transformations (optional).
-        6. **validate** – run pydantic-style checks per record.
-    """
 
     def __init__(
         self,
@@ -44,13 +25,7 @@ class DataProcessor:
         self._custom_transforms: List[Callable[[Dict[str, Any]], Dict[str, Any]]] = custom_transforms or []
         self._drop_duplicates = drop_duplicates
 
-    # ── Public API ───────────────────────────────────────────────────
-
     def process(self, records: Sequence[Dict[str, Any]]) -> BatchResult:
-        """
-        Run the full processing pipeline on *records* and return an
-        aggregated :class:`BatchResult`.
-        """
         t0 = time.perf_counter()
         batch = BatchResult(total_records=len(records))
         batch.status = FlowStatus.PROCESSING
@@ -81,16 +56,12 @@ class DataProcessor:
             batch.status = FlowStatus.FAILED
 
         logger.info(
-            "Batch %s complete: %d valid / %d invalid in %.1f ms",
-            batch.flow_id,
-            valid,
-            invalid,
-            batch.duration_ms,
+            "Batch %s — %d valid / %d invalid in %.1f ms",
+            batch.flow_id, valid, invalid, batch.duration_ms,
         )
         return batch
 
     def process_dataframe(self, df: pd.DataFrame) -> BatchResult:
-        """Convenience wrapper: accepts a pandas DataFrame."""
         if self._drop_duplicates:
             before = len(df)
             df = df.drop_duplicates()
@@ -100,8 +71,6 @@ class DataProcessor:
 
         records = df.to_dict(orient="records")
         return self.process(records)
-
-    # ── Internal pipeline ────────────────────────────────────────────
 
     def _process_single(self, idx: int, raw: Dict[str, Any]) -> ProcessingResult:
         errors: List[str] = []
@@ -135,26 +104,21 @@ class DataProcessor:
             is_valid=is_valid,
         )
 
-    # ── Pipeline stages ──────────────────────────────────────────────
-
     @staticmethod
     def _strip_whitespace(record: Dict[str, Any]) -> Dict[str, Any]:
         return {k: (v.strip() if isinstance(v, str) else v) for k, v in record.items()}
 
     @staticmethod
     def _normalize_keys(record: Dict[str, Any]) -> Dict[str, Any]:
-        """Lowercase keys, replace spaces/dashes with underscores."""
         def _snake(key: str) -> str:
             key = key.strip().lower()
             key = re.sub(r"[\s\-]+", "_", key)
             key = re.sub(r"[^\w]", "", key)
             return key
-
         return {_snake(k): v for k, v in record.items()}
 
     @staticmethod
     def _coerce_types(record: Dict[str, Any]) -> Dict[str, Any]:
-        """Try to cast stringified numbers and booleans to native types."""
         coerced: Dict[str, Any] = {}
         for k, v in record.items():
             if isinstance(v, str):
@@ -183,7 +147,6 @@ class DataProcessor:
         )
 
     def _validate(self, record: Dict[str, Any]) -> List[str]:
-        """Check required fields and basic type constraints."""
         errors: List[str] = []
         for field in self._required_fields:
             if field not in record or record[field] is None or record[field] == "":

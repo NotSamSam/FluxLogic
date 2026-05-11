@@ -1,8 +1,3 @@
-// ═══════════════════════════════════════════════════════════
-//  FluxLogic — Client-Side Application Engine
-// ═══════════════════════════════════════════════════════════
-
-// ── State ──────────────────────────────────────────────────
 const state = {
   rawData: [],
   processedData: [],
@@ -13,7 +8,6 @@ const state = {
   stats: { flows: 0, records: 0, valid: 0 }
 };
 
-// ── Tabs ───────────────────────────────────────────────────
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -23,7 +17,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// ── Toast ──────────────────────────────────────────────────
 function toast(msg, type = 'info') {
   const el = document.createElement('div');
   el.className = 'toast toast-' + type;
@@ -32,7 +25,6 @@ function toast(msg, type = 'info') {
   setTimeout(() => el.remove(), 4000);
 }
 
-// ── UUID ───────────────────────────────────────────────────
 function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
     const r = Math.random() * 16 | 0;
@@ -40,7 +32,6 @@ function uuid() {
   });
 }
 
-// ── HMAC-like signature (SHA-256 simulation via Web Crypto) ──
 async function signPayload(payload) {
   const secret = 'fluxlogic-dev-secret';
   const enc = new TextEncoder();
@@ -49,7 +40,6 @@ async function signPayload(payload) {
   return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ── Metrics update ─────────────────────────────────────────
 function updateMetrics() {
   document.getElementById('m-flows').textContent = state.stats.flows;
   document.getElementById('m-records').textContent = state.stats.records;
@@ -58,9 +48,6 @@ function updateMetrics() {
   document.getElementById('ep-count').textContent = state.endpoints.length;
 }
 
-// ═══════════════════════════════════════════════════════════
-//  FILE UPLOAD
-// ═══════════════════════════════════════════════════════════
 const uploadZone = document.getElementById('upload-zone');
 const fileInput = document.getElementById('file-input');
 
@@ -140,9 +127,6 @@ function renderPreview(data) {
 
 function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-// ═══════════════════════════════════════════════════════════
-//  DATA PROCESSING (client-side ETL)
-// ═══════════════════════════════════════════════════════════
 function processData() {
   if (!state.rawData.length) { toast('No data loaded — upload a file first', 'error'); return; }
 
@@ -156,7 +140,6 @@ function processData() {
   const valid = [], invalid = [];
   const total = state.rawData.length;
 
-  // Simulate async processing with visual progress
   let idx = 0;
   const batchSize = Math.max(1, Math.floor(total / 20));
 
@@ -178,10 +161,8 @@ function processRecord(index, raw, requiredFields) {
   const errors = [];
   let rec = { ...raw };
 
-  // 1. Strip whitespace
   Object.keys(rec).forEach(k => { if (typeof rec[k] === 'string') rec[k] = rec[k].trim(); });
 
-  // 2. Normalize keys
   const normalized = {};
   Object.keys(rec).forEach(k => {
     const nk = k.trim().toLowerCase().replace(/[\s-]+/g, '_').replace(/[^\w]/g, '');
@@ -189,7 +170,6 @@ function processRecord(index, raw, requiredFields) {
   });
   rec = normalized;
 
-  // 3. Coerce types
   Object.keys(rec).forEach(k => {
     const v = rec[k];
     if (typeof v === 'string') {
@@ -200,11 +180,9 @@ function processRecord(index, raw, requiredFields) {
     }
   });
 
-  // 4. Check empty
   const allEmpty = Object.values(rec).every(v => v === null || v === undefined || v === '');
   if (allEmpty) { errors.push('Empty row'); return { index, original: raw, processed: null, errors, isValid: false }; }
 
-  // 5. Validate required fields
   requiredFields.forEach(f => {
     if (!(f in rec) || rec[f] === null || rec[f] === undefined || rec[f] === '') {
       errors.push("Missing required field: '" + f + "'");
@@ -243,9 +221,6 @@ function finishProcessing(valid, invalid) {
   toast('Processing complete: ' + valid.length + ' valid, ' + invalid.length + ' invalid', valid.length ? 'success' : 'error');
 }
 
-// ═══════════════════════════════════════════════════════════
-//  ENDPOINTS
-// ═══════════════════════════════════════════════════════════
 function addEndpoint() {
   const name = document.getElementById('ep-name').value.trim();
   const url = document.getElementById('ep-url').value.trim();
@@ -268,7 +243,6 @@ function addEndpoint() {
   updateMetrics();
   toast('Endpoint "' + name + '" saved', 'success');
 
-  // Clear form
   document.getElementById('ep-name').value = '';
   document.getElementById('ep-url').value = '';
   document.getElementById('ep-key').value = '';
@@ -296,9 +270,6 @@ function updateDispatchSelect() {
   sel.innerHTML = state.endpoints.map(ep => '<option value="' + ep.id + '">' + escHtml(ep.name) + ' (' + ep.method + ')</option>').join('');
 }
 
-// ═══════════════════════════════════════════════════════════
-//  DISPATCH (simulated with fetch)
-// ═══════════════════════════════════════════════════════════
 async function dispatchData() {
   if (!state.processedData.length) { toast('No processed data — run the pipeline first', 'error'); return; }
   if (!state.endpoints.length) { toast('No endpoints configured', 'error'); return; }
@@ -331,7 +302,6 @@ async function dispatchData() {
     toast(success ? 'Dispatch successful!' : 'Dispatch returned HTTP ' + resp.status, success ? 'success' : 'error');
   } catch (err) {
     const latency = Math.round(performance.now() - t0);
-    // For CORS / network errors, show a simulation result instead
     container.innerHTML = '<div class="log-entry"><span class="badge badge-info">SIM</span><strong>' + escHtml(ep.name) + '</strong><span>Simulated dispatch of ' + state.processedData.length + ' records (' + latency + ' ms)</span></div>';
     container.innerHTML += '<p style="color:var(--text-muted);font-size:0.8rem;margin-top:0.5rem">ℹ️ Real HTTP dispatch blocked by browser CORS policy. In production, FluxLogic runs server-side with Python + Requests.</p>';
     addFlowLog(ep, state.processedData.length, 'success', []);
@@ -341,9 +311,6 @@ async function dispatchData() {
   updateMetrics();
 }
 
-// ═══════════════════════════════════════════════════════════
-//  WEBHOOKS
-// ═══════════════════════════════════════════════════════════
 async function simulateInbound() {
   const type = document.getElementById('wh-type').value;
   let payload;
@@ -386,9 +353,6 @@ function renderWebhookLog() {
   ).join('');
 }
 
-// ═══════════════════════════════════════════════════════════
-//  FLOW LOG
-// ═══════════════════════════════════════════════════════════
 function addFlowLog(ep, count, status, errors) {
   state.flowLog.unshift({
     id: uuid(), endpoint: ep.name, url: ep.url, method: ep.method,
@@ -408,5 +372,4 @@ function renderFlowLog() {
 
 function clearLogs() { state.flowLog = []; renderFlowLog(); toast('Logs cleared', 'info'); }
 
-// ── Init ───────────────────────────────────────────────────
 updateMetrics();

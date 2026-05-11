@@ -1,12 +1,3 @@
-"""
-FluxLogic | Universal Data Connector
-======================================
-Streamlit-based dashboard for uploading data, configuring API endpoints,
-processing records, and dispatching them to external services.
-
-Launch:
-    streamlit run fluxlogic_app.py
-"""
 
 from __future__ import annotations
 
@@ -20,14 +11,14 @@ from typing import Any, Dict, List
 import pandas as pd
 import streamlit as st
 
-# ── Local imports ────────────────────────────────────────────────────
+
 from config import get_settings
 from models import ApiEndpoint, DataFormat, FlowLogEntry, FlowStatus, HttpMethod
 from processor import DataProcessor
 from api_client import ApiClient
 from webhooks import WebhookManager
 
-# ── Logging setup ────────────────────────────────────────────────────
+
 settings = get_settings()
 logging.basicConfig(
     level=settings.log_level,
@@ -36,7 +27,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("fluxlogic.app")
 
-# ── Page configuration ───────────────────────────────────────────────
+
 st.set_page_config(
     page_title="FluxLogic | Universal Data Connector",
     page_icon="⚡",
@@ -44,13 +35,13 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Custom CSS for premium look ──────────────────────────────────────
+
 st.markdown(
     """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-    /* ── Global ──────────────────────────────────────────────── */
+
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
@@ -60,7 +51,7 @@ st.markdown(
         max-width: 1200px;
     }
 
-    /* ── Hero header ─────────────────────────────────────────── */
+
     .hero-container {
         background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
         border-radius: 16px;
@@ -86,7 +77,7 @@ st.markdown(
         margin-top: 0.5rem;
     }
 
-    /* ── Metric cards ────────────────────────────────────────── */
+
     .metric-card {
         background: linear-gradient(145deg, #1e1b4b 0%, #1e293b 100%);
         border: 1px solid rgba(139, 92, 246, 0.2);
@@ -113,7 +104,7 @@ st.markdown(
         margin-top: 0.2rem;
     }
 
-    /* ── Status badges ───────────────────────────────────────── */
+
     .badge {
         display: inline-block;
         padding: 0.25rem 0.75rem;
@@ -127,7 +118,7 @@ st.markdown(
     .badge-error   { background: #7f1d1d; color: #f87171; }
     .badge-info    { background: #1e3a5f; color: #38bdf8; }
 
-    /* ── Log table ───────────────────────────────────────────── */
+
     .log-row {
         background: #0f172a;
         border: 1px solid #1e293b;
@@ -138,7 +129,7 @@ st.markdown(
         color: #e2e8f0;
     }
 
-    /* ── Sidebar ─────────────────────────────────────────────── */
+
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0f0c29 0%, #1a1a2e 100%);
     }
@@ -148,7 +139,7 @@ st.markdown(
         color: #a78bfa;
     }
 
-    /* ── Dividers ────────────────────────────────────────────── */
+
     .section-divider {
         border: none;
         border-top: 1px solid rgba(139, 92, 246, 0.15);
@@ -160,12 +151,10 @@ st.markdown(
 )
 
 
-# ══════════════════════════════════════════════════════════════════════
-# SESSION STATE HELPERS
-# ══════════════════════════════════════════════════════════════════════
+
 
 def _init_state() -> None:
-    """Initialise session-state keys if absent."""
+
     defaults: Dict[str, Any] = {
         "endpoints": [],
         "flow_log": [],
@@ -181,9 +170,7 @@ def _init_state() -> None:
 _init_state()
 
 
-# ══════════════════════════════════════════════════════════════════════
-# SIDEBAR – Endpoint Configuration
-# ══════════════════════════════════════════════════════════════════════
+
 
 def _render_sidebar() -> None:
     with st.sidebar:
@@ -253,9 +240,7 @@ def _render_sidebar() -> None:
         st.caption(f"Timeout: **{settings.default_timeout}s**")
 
 
-# ══════════════════════════════════════════════════════════════════════
-# HERO HEADER
-# ══════════════════════════════════════════════════════════════════════
+
 
 def _render_header() -> None:
     st.markdown(
@@ -269,9 +254,7 @@ def _render_header() -> None:
     )
 
 
-# ══════════════════════════════════════════════════════════════════════
-# METRICS BAR
-# ══════════════════════════════════════════════════════════════════════
+
 
 def _render_metrics() -> None:
     c1, c2, c3, c4 = st.columns(4)
@@ -296,9 +279,7 @@ def _render_metrics() -> None:
             )
 
 
-# ══════════════════════════════════════════════════════════════════════
-# TAB 1 – Data Upload & Processing
-# ══════════════════════════════════════════════════════════════════════
+
 
 def _tab_data_upload() -> None:
     st.markdown("### 📂 Data Ingestion")
@@ -379,7 +360,7 @@ def _tab_data_upload() -> None:
             else:
                 st.error(f"❌ Processing failed — {batch.invalid_records} invalid records.")
 
-            # Show invalid record details
+
             invalid = [r for r in batch.results if not r.is_valid]
             if invalid:
                 with st.expander(f"🔍 {len(invalid)} validation errors", expanded=False):
@@ -388,9 +369,7 @@ def _tab_data_upload() -> None:
                         st.json(r.original)
 
 
-# ══════════════════════════════════════════════════════════════════════
-# TAB 2 – API Dispatch
-# ══════════════════════════════════════════════════════════════════════
+
 
 def _tab_dispatch() -> None:
     st.markdown("### 🚀 Dispatch to APIs")
@@ -436,7 +415,7 @@ def _tab_dispatch() -> None:
                     f"{res.error_message or f'HTTP {res.status_code}'}"
                 )
 
-        # Log
+
         log_entry = FlowLogEntry(
             source_format=DataFormat.CSV,
             endpoint=str(endpoint.url),
@@ -448,9 +427,7 @@ def _tab_dispatch() -> None:
         client.close()
 
 
-# ══════════════════════════════════════════════════════════════════════
-# TAB 3 – Webhooks
-# ══════════════════════════════════════════════════════════════════════
+
 
 def _tab_webhooks() -> None:
     st.markdown("### 🔔 Webhook Simulation")
@@ -523,7 +500,7 @@ def _tab_webhooks() -> None:
                 except json.JSONDecodeError:
                     st.error("Invalid JSON payload.")
 
-    # Event history
+
     if st.session_state.webhook_events:
         st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
         st.markdown("#### 📋 Event History")
@@ -540,9 +517,7 @@ def _tab_webhooks() -> None:
             )
 
 
-# ══════════════════════════════════════════════════════════════════════
-# TAB 4 – Flow Log / Audit
-# ══════════════════════════════════════════════════════════════════════
+
 
 def _tab_flow_log() -> None:
     st.markdown("### 📜 Flow Execution Log")
@@ -574,9 +549,7 @@ def _tab_flow_log() -> None:
         st.rerun()
 
 
-# ══════════════════════════════════════════════════════════════════════
-# MAIN LAYOUT
-# ══════════════════════════════════════════════════════════════════════
+
 
 def main() -> None:
     _render_sidebar()
@@ -601,7 +574,7 @@ def main() -> None:
     with tab4:
         _tab_flow_log()
 
-    # Footer
+
     st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
     st.caption(
         f"FluxLogic v{settings.app_version} · Built with Streamlit · "
