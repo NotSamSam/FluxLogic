@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FluxLogic | Universal Data Connector</title>
+  <meta name="description" content="FluxLogic — Engineering-led SaaS data automation. Upload, process, and dispatch data to any API with built-in validation, retry logic, and webhook support.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Background effects -->
+<div class="bg-grid"></div>
+<div class="bg-glow bg-glow--purple"></div>
+<div class="bg-glow bg-glow--blue"></div>
+
+<div class="app-container">
+
+  <!-- ═══ Navbar ═══ -->
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="#" class="navbar-brand">⚡ <span>FluxLogic</span></a>
+      <ul class="navbar-nav">
+        <li><a href="#app" class="active" data-nav="app">Dashboard</a></li>
+        <li><a href="https://github.com" target="_blank">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ═══ Hero ═══ -->
+  <section class="hero" id="hero">
+    <div class="container">
+      <h1>⚡ FluxLogic</h1>
+      <p>Universal Data Connector — Upload, process &amp; dispatch your data to any API in seconds.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">📂 CSV / JSON</span>
+        <span class="hero-badge">🔄 ETL Pipeline</span>
+        <span class="hero-badge">🚀 REST Dispatch</span>
+        <span class="hero-badge">🔔 Webhooks</span>
+        <span class="hero-badge">🔐 HMAC Signed</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Metrics ═══ -->
+  <section class="section" id="app">
+    <div class="container">
+      <div class="metrics">
+        <div class="metric"><div class="metric-value" id="m-flows">0</div><div class="metric-label">Flows Executed</div></div>
+        <div class="metric"><div class="metric-value" id="m-records">0</div><div class="metric-label">Records Processed</div></div>
+        <div class="metric"><div class="metric-value" id="m-valid">0</div><div class="metric-label">Valid Records</div></div>
+        <div class="metric"><div class="metric-value" id="m-endpoints">0</div><div class="metric-label">Endpoints</div></div>
+      </div>
+
+      <!-- ═══ Tabs ═══ -->
+      <div class="tabs" id="main-tabs">
+        <button class="tab-btn active" data-tab="upload">📂 Data Upload</button>
+        <button class="tab-btn" data-tab="endpoints">⚙️ Endpoints</button>
+        <button class="tab-btn" data-tab="dispatch">🚀 Dispatch</button>
+        <button class="tab-btn" data-tab="webhooks">🔔 Webhooks</button>
+        <button class="tab-btn" data-tab="logs">📜 Flow Log</button>
+      </div>
+
+      <!-- ── Tab: Upload ── -->
+      <div class="tab-panel active" id="panel-upload">
+        <div class="grid-2">
+          <div>
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">📂 File Upload</h3></div>
+              <div class="upload-zone" id="upload-zone">
+                <div class="upload-zone-icon">📁</div>
+                <div class="upload-zone-text">Drop a <strong>CSV</strong> or <strong>JSON</strong> file here</div>
+                <div class="upload-zone-hint">or click to browse</div>
+                <input type="file" id="file-input" accept=".csv,.json" hidden>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">✏️ Manual JSON Entry</h3></div>
+              <div class="form-group">
+                <textarea class="form-textarea" id="manual-json" rows="6" placeholder='[{"name": "Alice", "email": "alice@example.com", "score": "95"}]'>[{"name": "Alice", "email": "alice@example.com", "score": "95"},{"name": "Bob", "email": "bob@test.com", "score": "87"},{"name": "", "email": "invalid", "score": "N/A"}]</textarea>
+              </div>
+              <button class="btn btn-secondary btn-full" onclick="loadManualJSON()">📥 Load JSON</button>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">👁️ Data Preview</h3><span class="badge badge-info" id="preview-count">0 rows</span></div>
+              <div id="data-preview"><div class="empty-state"><div class="empty-state-icon">📭</div><p>No data loaded yet</p></div></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">🔄 Process Data</h3></div>
+              <div class="form-group">
+                <label class="form-label">Required Fields (comma-separated)</label>
+                <input class="form-input" id="required-fields" placeholder="name, email">
+              </div>
+              <button class="btn btn-primary btn-full" onclick="processData()">▶️ Run Processing Pipeline</button>
+              <div class="progress-bar" id="process-progress" style="display:none"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+              <div id="process-result"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab: Endpoints ── -->
+      <div class="tab-panel" id="panel-endpoints">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h3 class="card-title">➕ Add Endpoint</h3></div>
+            <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="ep-name" placeholder="e.g. CRM Webhook"></div>
+            <div class="form-group"><label class="form-label">URL</label><input class="form-input" id="ep-url" placeholder="https://api.example.com/data"></div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Method</label>
+                <select class="form-select" id="ep-method"><option>POST</option><option>PUT</option><option>PATCH</option><option>GET</option><option>DELETE</option></select>
+              </div>
+              <div class="form-group"><label class="form-label">Timeout (s)</label><input class="form-input" id="ep-timeout" type="number" value="30" min="1" max="120"></div>
+            </div>
+            <div class="form-group"><label class="form-label">API Key (optional)</label><input class="form-input" id="ep-key" type="password" placeholder="Bearer token"></div>
+            <div class="form-group"><label class="form-label">Custom Headers (JSON)</label><textarea class="form-textarea" id="ep-headers" rows="3" placeholder='{"X-Custom": "value"}'></textarea></div>
+            <button class="btn btn-primary btn-full" onclick="addEndpoint()">💾 Save Endpoint</button>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">📡 Active Endpoints</h3><span class="badge badge-info" id="ep-count">0</span></div>
+              <div id="endpoint-list"><div class="empty-state"><div class="empty-state-icon">📡</div><p>No endpoints configured</p></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab: Dispatch ── -->
+      <div class="tab-panel" id="panel-dispatch">
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">🚀 Dispatch Processed Data</h3></div>
+          <div id="dispatch-ready"></div>
+          <div class="form-group"><label class="form-label">Target Endpoint</label><select class="form-select" id="dispatch-target"></select></div>
+          <button class="btn btn-primary btn-full" onclick="dispatchData()">📤 Dispatch Now</button>
+          <div id="dispatch-result" style="margin-top:1rem"></div>
+        </div>
+      </div>
+
+      <!-- ── Tab: Webhooks ── -->
+      <div class="tab-panel" id="panel-webhooks">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h3 class="card-title">📩 Simulate Inbound</h3></div>
+            <div class="form-group"><label class="form-label">Event Type</label>
+              <select class="form-select" id="wh-type"><option>data.received</option><option>flow.completed</option><option>error.raised</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Payload (JSON)</label>
+              <textarea class="form-textarea" id="wh-payload" rows="4">{"source": "external-crm", "action": "contact.created", "id": 42}</textarea>
+            </div>
+            <button class="btn btn-secondary btn-full" onclick="simulateInbound()">⚡ Receive Webhook</button>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3 class="card-title">📤 Send Outbound</h3></div>
+            <div class="form-group"><label class="form-label">Target URL</label><input class="form-input" id="wh-target" placeholder="https://webhook.site/your-uuid"></div>
+            <div class="form-group"><label class="form-label">Payload (JSON)</label>
+              <textarea class="form-textarea" id="wh-out-payload" rows="4">{"flow_id": "demo-123", "status": "completed", "records": 50}</textarea>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="sendOutbound()">🚀 Send Webhook</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:1rem">
+          <div class="card-header"><h3 class="card-title">📋 Webhook Event History</h3></div>
+          <div id="wh-log"><div class="empty-state"><div class="empty-state-icon">🔔</div><p>No events yet</p></div></div>
+        </div>
+      </div>
+
+      <!-- ── Tab: Logs ── -->
+      <div class="tab-panel" id="panel-logs">
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">📜 Flow Execution Log</h3><button class="btn btn-danger btn-sm" onclick="clearLogs()">🗑️ Clear</button></div>
+          <div id="flow-log"><div class="empty-state"><div class="empty-state-icon">📜</div><p>No flows executed yet</p></div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ Footer ═══ -->
+  <footer class="footer">
+    <div class="container">
+      FluxLogic v0.1.0 · Built with ❤️ · © 2026 FluxLogic Engineering — EPITA
+    </div>
+  </footer>
+
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
