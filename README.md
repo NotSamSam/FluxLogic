@@ -7,7 +7,7 @@
 
 ---
 
-## 💡 C'est quoi FluxLogic ?
+## C'est quoi FluxLogic ?
 
 En termes simples, **FluxLogic est un "facteur" pour vos données**. 
 
@@ -22,7 +22,7 @@ Ce projet démontre des compétences clés en ingénierie logicielle (Data Engin
 
 ---
 
-## 🚀 Mini-Tutoriel : Testez-le vous-même en 2 minutes !
+## Mini-Tutoriel : Testez-le vous-même en 2 minutes !
 
 Vous pouvez tester l'application directement sur le site web sans rien installer. Suivez ces étapes simples :
 
@@ -59,7 +59,7 @@ Vous pouvez tester l'application directement sur le site web sans rien installer
 
 ---
 
-## 🛠️ Installation pour les développeurs (Version Python)
+## Installation pour les développeurs (Version Python)
 
 Ce dépôt contient aussi la vraie version Back-end en Python (Streamlit). Pour la lancer sur votre machine :
 
